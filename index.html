@@ -308,6 +308,7 @@
     if (markdownMode.classList.contains('active')) {
       const rawHTML = marked.parse(inputMarkdown.value);
       outputText.textContent = sanitizeHTML(rawHTML);
+             document.getElementById('lineCounter').classList.add('hidden');
     } else {
       const processedLines = inputClassic.value
   .split('\n')
@@ -317,12 +318,8 @@
 outputText.textContent = processedLines.join('\n');
 
 document.getElementById('lineCounter').textContent = `Liczba linii: ${processedLines.length}`;
-      if (markdownMode.classList.contains('active')) {
-       document.getElementById('lineCounter').classList.add('hidden');
-    } else {
-        document.getElementById('lineCounter').classList.remove('hidden');
+document.getElementById('lineCounter').classList.remove('hidden');
     }
-  }
   }
 
   [inputClassic, inputMarkdown, removePrefix, removeUrl, removeDigits, addPrefix, capitalize, addTab, findText, replaceText, document.getElementById('lowercase')]
