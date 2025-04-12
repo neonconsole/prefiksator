@@ -323,6 +323,7 @@ document.getElementById('lineCounter').textContent = `Liczba linii: ${processedL
         document.getElementById('lineCounter').classList.remove('hidden');
     }
   }
+  }
 
   [inputClassic, inputMarkdown, removePrefix, removeUrl, removeDigits, addPrefix, capitalize, addTab, findText, replaceText, document.getElementById('lowercase')]
     .forEach(el => el.addEventListener(el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' ? 'input' : 'change', updateOutput));
