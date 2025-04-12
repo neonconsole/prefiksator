@@ -189,6 +189,7 @@
       <label><input type="checkbox" id="removeDigits"> Usuń cyfry z końca wiersza</label>
       <label><input type="checkbox" id="removeUrl"> Usuń adres URL z końca wiersza</label>
       <label><input type="checkbox" id="addTab"> Dodaj tabulator między tekstem a cyframi</label>
+      <label><input type="checkbox" id="lowercase"> Zamień wszystko na małe litery</label>
     </div>
     <div class="find-replace">
       <strong style="font-size: 1.05rem;">🔎 Znajdź i zamień</strong>
@@ -205,6 +206,7 @@
 <div class="output">
   <button class="copy-button" onclick="copyOutput()">Kopiuj</button>
   <div id="outputText"></div>
+  <div id="lineCounter" style="margin-top: 0.8rem; font-size: 0.95rem; color: #ccc;"></div>
 </div>
 
 <div id="toast">✅ Skopiowano!</div>
@@ -281,31 +283,41 @@
   }
 
   function processLine(line) {
-    line = line.trim();
-    if (!line) return '';
-    if (removePrefix.checked) line = removePrefixTag(line);
-    if (removeUrl.checked) line = removeTrailingUrl(line);
-    if (removeDigits.checked) line = removeTrailingDigits(line);
-    if (addTab.checked) line = addTabBetweenTextAndDigits(line);
-    if (capitalize.checked && line.length > 0) line = line[0].toUpperCase() + line.slice(1);
-    if (addPrefix.checked) line = '[n] ' + line;
-    const find = findText.value;
-    const replace = replaceText.value;
-    if (find) line = line.replace(new RegExp(find, 'g'), replace);
-    return line;
-  }
+  line = line.trim();
+  if (!line) return null; // Pomiń puste linie
+
+  if (removePrefix.checked) line = removePrefixTag(line);
+  if (removeUrl.checked) line = removeTrailingUrl(line);
+  if (removeDigits.checked) line = removeTrailingDigits(line);
+  if (addTab.checked) line = addTabBetweenTextAndDigits(line);
+  if (capitalize.checked && line.length > 0) line = line[0].toUpperCase() + line.slice(1);
+  if (addPrefix.checked) line = '[n] ' + line;
+  if (document.getElementById('lowercase').checked) line = line.toLowerCase();
+
+  const find = findText.value;
+  const replace = replaceText.value;
+  if (find) line = line.replace(new RegExp(find, 'gi'), replace);
+  return line;
+}
+
 
   function updateOutput() {
     if (markdownMode.classList.contains('active')) {
       const rawHTML = marked.parse(inputMarkdown.value);
       outputText.textContent = sanitizeHTML(rawHTML);
     } else {
-      const result = inputClassic.value.split('\n').map(processLine).join('\n');
-      outputText.textContent = result;
+      const processedLines = inputClassic.value
+  .split('\n')
+  .map(processLine)
+  .filter(line => line !== null);
+
+outputText.textContent = processedLines.join('\n');
+
+document.getElementById('lineCounter').textContent = `Liczba linii: ${processedLines.length}`;
     }
   }
 
-  [inputClassic, inputMarkdown, removePrefix, removeUrl, removeDigits, addPrefix, capitalize, addTab, findText, replaceText]
+  [inputClassic, inputMarkdown, removePrefix, removeUrl, removeDigits, addPrefix, capitalize, addTab, findText, replaceText, document.getElementById('lowercase')]
     .forEach(el => el.addEventListener(el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' ? 'input' : 'change', updateOutput));
 
   function copyOutput() {
