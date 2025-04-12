@@ -308,10 +308,8 @@
     if (markdownMode.classList.contains('active')) {
       const rawHTML = marked.parse(inputMarkdown.value);
       outputText.textContent = sanitizeHTML(rawHTML);
-      lineCounter.classList.add('hidden');
     } else {
       const processedLines = inputClassic.value
-      lineCounter.classList.remove('hidden');
   .split('\n')
   .map(processLine)
   .filter(line => line !== null);
@@ -319,6 +317,10 @@
 outputText.textContent = processedLines.join('\n');
 
 document.getElementById('lineCounter').textContent = `Liczba linii: ${processedLines.length}`;
+      if (markdownMode.classList.contains('active')) {
+       document.getElementById('lineCounter').classList.add('hidden');
+    } else {
+        document.getElementById('lineCounter').classList.remove('hidden');
     }
   }
 
