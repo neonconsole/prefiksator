@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auto-prefiksator</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to right top, #3A86FF, #8338EC, #FF006E);
+      background-attachment: fixed;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #fff;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #ccc;
+    }
+    .tab {
+      padding: 0.8rem 1.5rem;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+      color: #ccc;
+      transition: all 0.3s;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+    .tab.active {
+      color: #fff;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-bottom: 3px solid #00C896;
+      font-weight: 600;
+    }
+    .textarea-wrapper {
+      display: none;
+      width: 100%;
+      max-width: 800px;
+    }
+    .textarea-wrapper.active {
+      display: block;
+    }
+    textarea, .output {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      resize: vertical;
+      box-sizing: border-box;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      background: rgba(255, 255, 255, 0.95);
+      color: #111;
+    }
+    textarea {
+      height: 200px;
+    }
+    .output {
+      margin-top: 1.5rem;
+      min-height: 100px;
+      white-space: pre-wrap;
+      position: relative;
+    }
+    .copy-button {
+      position: absolute;
+      top: -20px;
+      right: 10px;
+      transform: translateY(-50%);
+      z-index: 10;
+    }
+    .options {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      font-size: 0.95rem;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(6px);
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .checkboxes {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .find-replace {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .find-replace input {
+      padding: 0.3rem 0.6rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+    }
+    .options input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #00C896;
+      cursor: pointer;
+    }
+    .options label {
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    button {
+      padding: 0.8rem 1.4rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      background: #00C896;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    button:hover {
+      background-color: #00b184;
+      transform: translateY(-1px);
+    }
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      font-size: 0.95rem;
+      z-index: 1000;
+    }
+    #toast.show {
+      opacity: 1;
+    }
+    @media (max-width: 600px) {
+      textarea, .output {
+        font-size: 0.9rem;
+      }
+      button {
+        width: 100%;
+      }
+      .options {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Prefiksator 3000 🔧</h1>
+
+<div class="tabs">
+  <button class="tab active" data-mode="classic">Prefiksator</button>
+  <button class="tab" data-mode="markdown">Markdown → HTML</button>
+</div>
+
+<div id="classicMode" class="textarea-wrapper active">
+  <textarea id="inputClassic" placeholder="Wklej tekst tutaj..."></textarea>
+  <div class="options">
+    <div class="checkboxes">
+      <label><input type="checkbox" id="removePrefix"> Usuń istniejący prefiks [n]</label>
+      <label><input type="checkbox" id="addPrefix" checked> Dodaj prefiks [n]</label>
+      <label><input type="checkbox" id="capitalize" checked> Kapitalizuj pierwszą literę</label>
+      <label><input type="checkbox" id="removeDigits"> Usuń cyfry z końca wiersza</label>
+      <label><input type="checkbox" id="removeUrl"> Usuń adres URL z końca wiersza</label>
+      <label><input type="checkbox" id="addTab"> Dodaj tabulator między tekstem a cyframi</label>
+    </div>
+    <div class="find-replace">
+      <strong style="font-size: 1.05rem;">🔎 Znajdź i zamień</strong>
+      <input type="text" id="findText" placeholder="Znajdź...">
+      <input type="text" id="replaceText" placeholder="Zamień na...">
+    </div>
+  </div>
+</div>
+
+<div id="markdownMode" class="textarea-wrapper">
+  <textarea id="inputMarkdown" placeholder="Wklej tutaj markdown..."></textarea>
+</div>
+
+<div class="output">
+  <button class="copy-button" onclick="copyOutput()">Kopiuj</button>
+  <div id="outputText"></div>
+</div>
+
+<div id="toast">✅ Skopiowano!</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  const inputClassic = document.getElementById('inputClassic');
+  const inputMarkdown = document.getElementById('inputMarkdown');
+  const outputText = document.getElementById('outputText');
+  const removeDigits = document.getElementById('removeDigits');
+  const addPrefix = document.getElementById('addPrefix');
+  const capitalize = document.getElementById('capitalize');
+  const removeUrl = document.getElementById('removeUrl');
+  const removePrefix = document.getElementById('removePrefix');
+  const addTab = document.getElementById('addTab');
+  const findText = document.getElementById('findText');
+  const replaceText = document.getElementById('replaceText');
+  const toast = document.getElementById('toast');
+  const tabs = document.querySelectorAll('.tab');
+  const classicMode = document.getElementById('classicMode');
+  const markdownMode = document.getElementById('markdownMode');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      if (tab.dataset.mode === 'classic') {
+        classicMode.classList.add('active');
+        markdownMode.classList.remove('active');
+      } else {
+        classicMode.classList.remove('active');
+        markdownMode.classList.add('active');
+      }
+      updateOutput();
+    });
+  });
+
+  function sanitizeHTML(html) {
+    let div = document.createElement('div');
+    div.innerHTML = html;
+    const walker = document.createTreeWalker(div, NodeFilter.SHOW_ELEMENT);
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      node.removeAttribute('style');
+      node.removeAttribute('class');
+      node.removeAttribute('id');
+    }
+    div.querySelectorAll('*').forEach(el => {
+      if (el.innerHTML.trim() === '' || el.innerHTML === '&nbsp;') el.remove();
+      else if (['SPAN','IMG','TABLE','LINK'].includes(el.tagName)) el.replaceWith(...el.childNodes);
+    });
+    div.innerHTML = div.innerHTML.replace(/&nbsp;/g, ' ');
+    return div.innerHTML;
+  }
+
+  function removeTrailingDigits(text) {
+    let i = text.length - 1;
+    while (i >= 0 && !/[a-zA-Z]/.test(text[i])) i--;
+    return text.substring(0, i + 1);
+  }
+
+  function removeTrailingUrl(text) {
+    return text.replace(/\s?(https?:\/\/|www\.)[^\s]+$/i, '');
+  }
+
+  function removePrefixTag(text) {
+    return text.replace(/^\[n\]\s*/i, '');
+  }
+
+  function addTabBetweenTextAndDigits(text) {
+    return text.replace(/(.*?)(\s+)(\d[\d\s]*)$/, (match, before, space, digits) => {
+      return before + '\t' + digits.replace(/\s+/g, '');
+    });
+  }
+
+  function processLine(line) {
+    line = line.trim();
+    if (!line) return '';
+    if (removePrefix.checked) line = removePrefixTag(line);
+    if (removeUrl.checked) line = removeTrailingUrl(line);
+    if (removeDigits.checked) line = removeTrailingDigits(line);
+    if (addTab.checked) line = addTabBetweenTextAndDigits(line);
+    if (capitalize.checked && line.length > 0) line = line[0].toUpperCase() + line.slice(1);
+    if (addPrefix.checked) line = '[n] ' + line;
+    const find = findText.value;
+    const replace = replaceText.value;
+    if (find) line = line.replace(new RegExp(find, 'g'), replace);
+    return line;
+  }
+
+  function updateOutput() {
+    if (markdownMode.classList.contains('active')) {
+      const rawHTML = marked.parse(inputMarkdown.value);
+      outputText.textContent = sanitizeHTML(rawHTML);
+    } else {
+      const result = inputClassic.value.split('\n').map(processLine).join('\n');
+      outputText.textContent = result;
+    }
+  }
+
+  [inputClassic, inputMarkdown, removePrefix, removeUrl, removeDigits, addPrefix, capitalize, addTab, findText, replaceText]
+    .forEach(el => el.addEventListener(el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' ? 'input' : 'change', updateOutput));
+
+  function copyOutput() {
+    navigator.clipboard.writeText(outputText.textContent)
+      .then(() => showToast())
+      .catch(() => console.error('Błąd kopiowania.'));
+  }
+
+  function showToast() {
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+</script>
+
+</body>
+</html>
