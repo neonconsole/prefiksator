@@ -167,6 +167,9 @@
       .options {
         flex-direction: column;
       }
+      .hidden {
+      display: none !important;
+      }
     }
   </style>
 </head>
@@ -305,8 +308,10 @@
     if (markdownMode.classList.contains('active')) {
       const rawHTML = marked.parse(inputMarkdown.value);
       outputText.textContent = sanitizeHTML(rawHTML);
+      lineCounter.classList.add('hidden');
     } else {
       const processedLines = inputClassic.value
+      lineCounter.classList.remove('hidden');
   .split('\n')
   .map(processLine)
   .filter(line => line !== null);
