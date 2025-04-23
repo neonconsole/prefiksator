@@ -194,6 +194,7 @@
       <label><input type="checkbox" id="removeUrl"> Usuń adres URL z końca wiersza</label>
       <label><input type="checkbox" id="addTab"> Dodaj tabulator między tekstem a cyframi</label>
       <label><input type="checkbox" id="lowercase"> Zamień wszystko na małe litery</label>
+      <label><input type="checkbox" id="onlyPrefixed"> Usuń wiersze bez prefiksu [n]</label>
     </div>
     <div class="find-replace">
       <strong style="font-size: 1.05rem;">🔎 Znajdź i zamień</strong>
@@ -217,6 +218,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
+  const onlyPrefixed = document.getElementById('onlyPrefixed');
   const inputClassic = document.getElementById('inputClassic');
   const inputMarkdown = document.getElementById('inputMarkdown');
   const outputText = document.getElementById('outputText');
@@ -290,6 +292,7 @@
   line = line.trim();
   if (!line) return null; // Pomiń puste linie
 
+  if (onlyPrefixed.checked && !line.startsWith('[n]')) return null;
   if (removePrefix.checked) line = removePrefixTag(line);
   if (removeUrl.checked) line = removeTrailingUrl(line);
   if (removeDigits.checked) line = removeTrailingDigits(line);
@@ -323,7 +326,7 @@ document.getElementById('lineCounter').classList.remove('hidden');
     }
   }
 
-  [inputClassic, inputMarkdown, removePrefix, removeUrl, removeDigits, addPrefix, capitalize, addTab, findText, replaceText, document.getElementById('lowercase')]
+  [inputClassic, inputMarkdown, removePrefix, removeUrl, removeDigits, addPrefix, capitalize, addTab, findText, replaceText, document.getElementById('lowercase'), onlyPrefixed]
     .forEach(el => el.addEventListener(el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' ? 'input' : 'change', updateOutput));
 
   function copyOutput() {
