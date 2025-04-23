@@ -269,10 +269,17 @@
   }
 
   function removeTrailingDigits(text) {
-    let i = text.length - 1;
-    while (i >= 0 && !/[a-zA-Z]/.test(text[i])) i--;
-    return text.substring(0, i + 1);
+  // Jeśli zawiera tabulator, przetnij i usuń cyfry z końca drugiej części
+  if (text.includes('\t')) {
+    const [beforeTab, afterTab] = text.split('\t');
+    const cleanedAfterTab = afterTab.replace(/\d+$/, '');
+    return beforeTab + '\t' + cleanedAfterTab;
   }
+
+  // Jeśli nie ma tabulatora, usuń cyfry z końca, pozostawiając znaki specjalne i polskie
+  return text.replace(/[\d\s]+$/, '');
+}
+
 
   function removeTrailingUrl(text) {
     return text.replace(/\s?(https?:\/\/|www\.)[^\s]+$/i, '');
