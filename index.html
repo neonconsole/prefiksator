@@ -201,6 +201,10 @@
       <strong style="font-size: 1.05rem;">🔎 Znajdź i zamień</strong>
       <input type="text" id="findText" placeholder="Znajdź...">
       <input type="text" id="replaceText" placeholder="Zamień na...">
+      <label>
+        Prefiks:
+        <input type="text" id="customPrefix" value="[n]" style="width: 80px; padding: 0.2rem 0.4rem; font-size: 1rem;">
+      </label>
     </div>
   </div>
 </div>
@@ -236,6 +240,7 @@
   const classicMode = document.getElementById('classicMode');
   const markdownMode = document.getElementById('markdownMode');
   const removePrefixed = document.getElementById('removePrefixed');
+  const customPrefix = document.getElementById('customPrefix');
   
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -299,16 +304,18 @@
 
   function processLine(line) {
   line = line.trim();
+  const prefix = customPrefix.value || '[n]'; // domyślnie [n]
+    
   if (!line) return null; // Pomiń puste linie
 
-  if (onlyPrefixed.checked && !line.startsWith('[n]')) return null;
-  if (removePrefixed.checked && line.startsWith('[n]')) return null;
-  if (removePrefix.checked) line = removePrefixTag(line);
+  if (onlyPrefixed.checked && !line.startsWith(prefix)) return null;
+  if (removePrefixed.checked && line.startsWith(prefix)) return null;
+  if (removePrefix.checked) line = line.replace(new RegExp('^' + escapeRegExp(prefix) + '\\s*', 'i'), '');
   if (removeUrl.checked) line = removeTrailingUrl(line);
   if (removeDigits.checked) line = removeTrailingDigits(line);
   if (addTab.checked) line = addTabBetweenTextAndDigits(line);
   if (capitalize.checked && line.length > 0) line = line[0].toUpperCase() + line.slice(1);
-  if (addPrefix.checked) line = '[n] ' + line;
+  if (addPrefix.checked) line = prefix + ' ' + line;
   if (document.getElementById('lowercase').checked) line = line.toLowerCase();
 
   const find = findText.value;
@@ -316,7 +323,10 @@
   if (find) line = line.replace(new RegExp(find, 'gi'), replace);
   return line;
 }
-
+  
+  function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
   function updateOutput() {
     if (markdownMode.classList.contains('active')) {
@@ -336,7 +346,7 @@ document.getElementById('lineCounter').classList.remove('hidden');
     }
   }
 
-  [inputClassic, inputMarkdown, removePrefix, removeUrl, removeDigits, addPrefix, capitalize, addTab, findText, replaceText, document.getElementById('lowercase'), onlyPrefixed, removePrefixed]
+  [inputClassic, inputMarkdown, removePrefix, removeUrl, removeDigits, addPrefix, capitalize, addTab, findText, replaceText, document.getElementById('lowercase'), onlyPrefixed, removePrefixed, customPrefix]
     .forEach(el => el.addEventListener(el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' ? 'input' : 'change', updateOutput));
 
   function copyOutput() {
